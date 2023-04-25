@@ -1,6 +1,7 @@
 package KAGO_framework.control;
 
 import KAGO_framework.Config;
+import KAGO_framework.model.GraphicalObject;
 import KAGO_framework.view.DrawTool;
 //import KAGO_scenario_framework.control.ScenarioController;
 import my_project.control.ProgramController;
@@ -286,13 +287,37 @@ public class ViewController implements ActionListener, KeyListener, MouseListene
         int dt = (int) ((elapsedTime / 1000000L));
         double dtSeconds = (double)dt/1000;
         if ( dtSeconds == 0 ) dtSeconds = 0.01;
-        Iterator<Drawable> drawIterator = scenes.get(currentScene).drawables.iterator();
+        Iterator<Drawable> drawIterator = sort(scenes.get(currentScene).drawables).iterator();
         while (drawIterator.hasNext() && notChangingDrawables){
             Drawable currentObject = drawIterator.next();
             currentObject.draw(drawTool);
             currentObject.update(dtSeconds);
             if (my_project.Config.useSound && soundController != null) soundController.update(dtSeconds);
         }
+    }
+
+    /**
+     * Sortiert die übergebene List nach den Z-Koordinaten des Objectes, falls es ein GraphicalObject ist.
+     * Objekte welche keine instanz von GraphicalObject sind werden ans ende der sortierten List angefügt.
+     */
+    private ArrayList<Drawable> sort(ArrayList<Drawable> drawables){
+        ArrayList<Drawable> copyDrawables = new ArrayList<>(drawables.subList(0, drawables.size()));
+        ArrayList<Drawable> sorted = new ArrayList<>();
+        Drawable current;
+        double z;
+        while(!copyDrawables.isEmpty()){
+            current = null;
+            z = Double.MAX_VALUE;
+            for(Drawable drawable:copyDrawables){
+                if(drawable instanceof GraphicalObject && ((GraphicalObject) drawable).getZ() < z){
+                    current = drawable;
+                    z = ((GraphicalObject) drawable).getZ();
+                }
+            }
+            sorted.add(current == null ? copyDrawables.get(0) : current);
+            copyDrawables.remove(current == null ? 0 : current);
+        }
+        return sorted;
     }
 
     /**

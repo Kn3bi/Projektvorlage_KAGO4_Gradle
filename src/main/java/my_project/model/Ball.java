@@ -1,6 +1,7 @@
 package my_project.model;
 
 import KAGO_framework.model.GraphicalObject;
+import KAGO_framework.model.Vector;
 import KAGO_framework.view.DrawTool;
 
 import java.awt.*;
@@ -17,8 +18,7 @@ public class Ball extends GraphicalObject {
      * @param y Startposition y
      */
     public Ball(double x, double y){
-        this.x = x;
-        this.y = y;
+        coordinates = new Vector(x, y);
     }
 
 
@@ -27,10 +27,10 @@ public class Ball extends GraphicalObject {
      */
     @Override
     public void draw(DrawTool drawTool) {
-        drawTool.drawFilledCircle(x,y,20);
+        drawTool.drawFilledCircle(coordinates.x(), coordinates.y(), 20);
         drawTool.setCurrentColor(Color.RED);
-        drawTool.drawCircle(x,y,10);
-        drawTool.drawCircle(x,y,5);
+        drawTool.drawCircle(coordinates.x(), coordinates.y(),10);
+        drawTool.drawCircle(coordinates.x(), coordinates.y(),5);
     }
 
     /**
