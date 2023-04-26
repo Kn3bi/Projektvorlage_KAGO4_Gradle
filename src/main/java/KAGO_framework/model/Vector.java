@@ -48,19 +48,21 @@ public final class Vector {
     /**
      * added the coordinates of the given vector to the vector
      */
-    public void add(Vector vector){
+    public Vector add(Vector vector){
         x += vector.x;
         y += vector.y;
         z += vector.y;
+        return this;
     }
 
     /**
      * multiplies the coordinates of the vector by the given factor
      */
-    public void multiply(double d){
+    public Vector multiply(double d){
         x *= d;
         y *= d;
         z *= d;
+        return this;
     }
 
     /**
