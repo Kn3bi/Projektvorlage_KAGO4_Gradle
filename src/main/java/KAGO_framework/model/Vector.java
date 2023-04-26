@@ -1,5 +1,7 @@
 package KAGO_framework.model;
 
+import java.util.zip.DataFormatException;
+
 /**
  * Object representing a three-dimensional Vector
  */
@@ -14,6 +16,15 @@ public final class Vector {
         x = 0;
         y = 0;
         z = 0;
+    }
+
+    /**
+     * creates a new Vector with coordinate values of the given vector
+     */
+    public Vector(Vector vector){
+        x = vector.x;
+        y = vector.y;
+        z = vector.z;
     }
 
     /**
@@ -123,5 +134,24 @@ public final class Vector {
      */
     public void setZ(double z){
         this.z = z;
+    }
+
+    /**
+     * returns a new Vector with the coordinate values of the given one
+     */
+    public static Vector valueOf(Vector vector){
+        return new Vector(vector);
+    }
+
+    /**
+     * returns a Vector with the given value
+     */
+    public static Vector valueOf(String s) throws RuntimeException{
+        if(!s.startsWith("(") || ! s.endsWith(")")) throw new RuntimeException();
+        s = s.substring(1, s.length() - 1);
+        String[] values = s.split(",");
+        if(values.length < 2) throw new RuntimeException();
+        double[] coordinates = new double[]{Double.parseDouble(values[0]), Double.parseDouble(values[1]), values.length == 3 ? Double.parseDouble(values[2]) : 0};
+        return new Vector(coordinates[0], coordinates[1], coordinates[2]);
     }
 }
