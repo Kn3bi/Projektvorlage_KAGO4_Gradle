@@ -2,6 +2,7 @@ package KAGO_framework.control;
 
 import KAGO_framework.Config;
 import KAGO_framework.model.GraphicalObject;
+import KAGO_framework.model.ui.UIElement;
 import KAGO_framework.view.DrawTool;
 //import KAGO_scenario_framework.control.ScenarioController;
 import my_project.control.ProgramController;
@@ -32,12 +33,14 @@ public class ViewController implements ActionListener, KeyListener, MouseListene
         DrawingPanel drawingPanel;
         ArrayList<Drawable> drawables;
         ArrayList<Interactable> interactables;
+        ArrayList<UIElement> uiElements;
 
         Scene(ViewController viewController){
             drawingPanel = new DrawingPanel(viewController);
             drawingPanel.setBackground(new Color(255,255,255));
             drawables = new ArrayList<>();
             interactables = new ArrayList<>();
+            uiElements = new ArrayList<>();
         }
     }
 
@@ -67,16 +70,16 @@ public class ViewController implements ActionListener, KeyListener, MouseListene
         createWindow();
         // Setzt die Ziel-Zeit zwischen zwei aufeinander folgenden Frames in Millisekunden
         dt = 35; //Vernuenftiger Startwert
-        if ( Config.INFO_MESSAGES) System.out.println("  > ViewController: Erzeuge ProgramController und starte Spielprozess (Min. dt = "+dt+"ms)...");
-        if ( Config.INFO_MESSAGES) System.out.println("     > Es wird nun einmalig die Methode startProgram von dem ProgramController-Objekt aufgerufen.");
-        if ( Config.INFO_MESSAGES) System.out.println("     > Es wird wiederholend die Methode updateProgram von dem ProgramController-Objekt aufgerufen.");
-        if ( Config.INFO_MESSAGES) System.out.println("-------------------------------------------------------------------------------------------------\n");
-        if ( Config.INFO_MESSAGES) System.out.println("** Ab hier folgt das Log zum laufenden Programm: **");
+        if ( Config.INFO_MESSAGES) {
+            System.out.println("  > ViewController: Erzeuge ProgramController und starte Spielprozess (Min. dt = " + dt + "ms)...");
+            System.out.println("     > Es wird nun einmalig die Methode startProgram von dem ProgramController-Objekt aufgerufen.");
+            System.out.println("     > Es wird wiederholend die Methode updateProgram von dem ProgramController-Objekt aufgerufen.");
+            System.out.println("-------------------------------------------------------------------------------------------------\n");
+            System.out.println("** Ab hier folgt das Log zum laufenden Programm: **");
+        }
         if(my_project.Config.useSound){
             soundController = new SoundController();
-        } else {
-            if ( Config.INFO_MESSAGES) System.out.println("** Achtung! Sound deaktiviert => soundController ist NULL (kann in Config geändert werden). **");
-        }
+        } else if ( Config.INFO_MESSAGES) System.out.println("** Achtung! Sound deaktiviert => soundController ist NULL (kann in Config geändert werden). **");
 
         if (!my_project.Config.SHOW_DEFAULT_WINDOW){
             setDrawFrameVisible(false);
@@ -255,6 +258,34 @@ public class ViewController implements ActionListener, KeyListener, MouseListene
     }
 
     /**
+     * adds the given UIElement to the UI of the given scene
+     */
+    public void addUIElement(UIElement element, int sceneIndex){
+        if(element != null && sceneIndex < scenes.size()) SwingUtilities.invokeLater(() -> scenes.get(sceneIndex).uiElements.add(element));
+    }
+
+    /**
+     * adds the given UIElement to the UI of the current scene
+     */
+    public void addUIElement(UIElement element){
+        addUIElement(element, currentScene);
+    }
+
+    /**
+     * removes the given UIElement from the UI of the given scene
+     */
+    public void removeUIElement(UIElement element, int sceneIndex){
+        if(element != null && sceneIndex < scenes.size()) SwingUtilities.invokeLater(() -> scenes.get(sceneIndex).uiElements.remove(element));
+    }
+
+    /**
+     * removes the given UIElement from the UI of the current scene
+     */
+    public void removeUIElement(UIElement element){
+        removeUIElement(element, currentScene);
+    }
+
+    /**
      * Wird vom Timer-Thread aufgerufen. Es wird dafuer gesorgt, dass das aktuelle Drawing-Panel
      * alle seine Objekte zeichnet und deren Update-Methoden aufruft.
      * Zusaetzlich wird die updateProgram-Methode des GameControllers regelmaeßig nach jeder Frame
@@ -294,13 +325,19 @@ public class ViewController implements ActionListener, KeyListener, MouseListene
             currentObject.update(dtSeconds);
             if (my_project.Config.useSound && soundController != null) soundController.update(dtSeconds);
         }
+
+        for(Drawable element:sort(scenes.get(currentScene).uiElements)){
+            element.draw(drawTool);
+            element.update(dtSeconds);
+            if (my_project.Config.useSound && soundController != null) soundController.update(dtSeconds);
+        }
     }
 
     /**
      * Sortiert die übergebene List nach den Z-Koordinaten des Objectes, falls es ein GraphicalObject ist.
      * Objekte welche keine instanz von GraphicalObject sind werden ans ende der sortierten List angefügt.
      */
-    private ArrayList<Drawable> sort(ArrayList<Drawable> drawables){
+    private ArrayList<Drawable> sort(ArrayList<? extends Drawable> drawables){
         ArrayList<Drawable> copyDrawables = new ArrayList<>(drawables.subList(0, drawables.size()));
         ArrayList<Drawable> sorted = new ArrayList<>();
         Drawable current;
@@ -349,10 +386,22 @@ public class ViewController implements ActionListener, KeyListener, MouseListene
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        Iterator<Interactable> iterator = scenes.get(currentScene).interactables.iterator();
-        while (iterator.hasNext() && notChangingInteractables){
-            Interactable tmpInteractable = iterator.next();
-            tmpInteractable.mouseReleased(e);
+        boolean done = false;
+
+        for(UIElement element:scenes.get(currentScene).uiElements){
+            if(element.checkClickOn(e.getX(), e.getY())){
+                element.mouseReleased(e);
+                done = true;
+                break;
+            }
+        }
+
+        if(!done) {
+            Iterator<Interactable> iterator = scenes.get(currentScene).interactables.iterator();
+            while (iterator.hasNext() && notChangingInteractables) {
+                Interactable tmpInteractable = iterator.next();
+                tmpInteractable.mouseReleased(e);
+            }
         }
     }
 
@@ -369,37 +418,86 @@ public class ViewController implements ActionListener, KeyListener, MouseListene
     @Override
     public void mouseClicked(MouseEvent e) {
         //programController.mouseClicked(e); entfernt 11.11.21 KNB - Simplifizierung & MVC für ProgramController
-        Iterator<Interactable> iterator = scenes.get(currentScene).interactables.iterator();
-        while (iterator.hasNext() && notChangingInteractables){
-            Interactable tmpInteractable = iterator.next();
-            tmpInteractable.mouseClicked(e);
+
+        boolean done = false;
+
+        for(UIElement element:scenes.get(currentScene).uiElements){
+            if(element.checkClickOn(e.getX(), e.getY())){
+                element.mouseReleased(e);
+                done = true;
+                break;
+            }
+        }
+
+        if(!done) {
+            Iterator<Interactable> iterator = scenes.get(currentScene).interactables.iterator();
+            while (iterator.hasNext() && notChangingInteractables) {
+                Interactable tmpInteractable = iterator.next();
+                tmpInteractable.mouseClicked(e);
+            }
         }
     }
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        Iterator<Interactable> iterator = scenes.get(currentScene).interactables.iterator();
-        while (iterator.hasNext() && notChangingInteractables){
-            Interactable tmpInteractable = iterator.next();
-            tmpInteractable.mouseDragged(e);
+        boolean done = false;
+
+        for(UIElement element:scenes.get(currentScene).uiElements){
+            if(element.checkClickOn(e.getX(), e.getY())){
+                element.mouseDragged(e);
+                done = true;
+                break;
+            }
+        }
+
+        if(!done) {
+            Iterator<Interactable> iterator = scenes.get(currentScene).interactables.iterator();
+            while (iterator.hasNext() && notChangingInteractables) {
+                Interactable tmpInteractable = iterator.next();
+                tmpInteractable.mouseDragged(e);
+            }
         }
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
-        Iterator<Interactable> iterator = scenes.get(currentScene).interactables.iterator();
-        while (iterator.hasNext() && notChangingInteractables){
-            Interactable tmpInteractable = iterator.next();
-            tmpInteractable.mouseMoved(e);
+        boolean done = false;
+
+        for(UIElement element:scenes.get(currentScene).uiElements){
+            if(element.checkClickOn(e.getX(), e.getY())){
+                element.mouseMoved(e);
+                done = true;
+                break;
+            }
+        }
+
+        if(!done) {
+            Iterator<Interactable> iterator = scenes.get(currentScene).interactables.iterator();
+            while (iterator.hasNext() && notChangingInteractables) {
+                Interactable tmpInteractable = iterator.next();
+                tmpInteractable.mouseMoved(e);
+            }
         }
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
-        Iterator<Interactable> iterator = scenes.get(currentScene).interactables.iterator();
-        while (iterator.hasNext() && notChangingInteractables){
-            Interactable tmpInteractable = iterator.next();
-            tmpInteractable.mousePressed(e);
+        boolean done = false;
+
+        for(UIElement element:scenes.get(currentScene).uiElements){
+            if(element.checkClickOn(e.getX(), e.getY())){
+                element.mousePressed(e);
+                done = true;
+                break;
+            }
+        }
+
+        if(!done) {
+            Iterator<Interactable> iterator = scenes.get(currentScene).interactables.iterator();
+            while (iterator.hasNext() && notChangingInteractables) {
+                Interactable tmpInteractable = iterator.next();
+                tmpInteractable.mousePressed(e);
+            }
         }
     }
 
@@ -411,10 +509,22 @@ public class ViewController implements ActionListener, KeyListener, MouseListene
     @Override
     public void keyPressed(KeyEvent e) {
         if (!currentlyPressedKeys.contains(e.getKeyCode())) currentlyPressedKeys.add(e.getKeyCode());
-        Iterator<Interactable> iterator = scenes.get(currentScene).interactables.iterator();
-        while (iterator.hasNext() && notChangingInteractables){
-            Interactable tmpInteractable = iterator.next();
-            tmpInteractable.keyPressed(e.getKeyCode());
+        boolean done = false;
+
+        for(UIElement element:scenes.get(currentScene).uiElements){
+            if(element.awaitInput()){
+                element.keyPressed(e.getKeyCode());
+                done = true;
+                break;
+            }
+        }
+
+        if(!done) {
+            Iterator<Interactable> iterator = scenes.get(currentScene).interactables.iterator();
+            while (iterator.hasNext() && notChangingInteractables) {
+                Interactable tmpInteractable = iterator.next();
+                tmpInteractable.keyPressed(e.getKeyCode());
+            }
         }
     }
 
@@ -422,10 +532,23 @@ public class ViewController implements ActionListener, KeyListener, MouseListene
     public void keyReleased(KeyEvent e) {
         if (currentlyPressedKeys.contains(e.getKeyCode()))
             currentlyPressedKeys.remove(Integer.valueOf(e.getKeyCode()));
-        Iterator<Interactable> iterator = scenes.get(currentScene).interactables.iterator();
-        while (iterator.hasNext() && notChangingInteractables){
-            Interactable tmpInteractable = iterator.next();
-            tmpInteractable.keyReleased(e.getKeyCode());
+
+        boolean done = false;
+
+        for(UIElement element:scenes.get(currentScene).uiElements){
+            if(element.awaitInput()){
+                element.keyReleased(e.getKeyCode());
+                done = true;
+                break;
+            }
+        }
+
+        if(!done) {
+            Iterator<Interactable> iterator = scenes.get(currentScene).interactables.iterator();
+            while (iterator.hasNext() && notChangingInteractables) {
+                Interactable tmpInteractable = iterator.next();
+                tmpInteractable.keyReleased(e.getKeyCode());
+            }
         }
     }
 

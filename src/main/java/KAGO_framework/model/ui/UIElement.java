@@ -3,7 +3,9 @@ package KAGO_framework.model.ui;
 import KAGO_framework.model.InteractiveGraphicalObject;
 
 /**
- * Class representing a UI Element
+ * Class representing a UI Element.
+ * <p>
+ * Note that Objects of this Class, or subclasses, should be registered in the ViewController at UIElements to provide full functionality
  */
 public abstract class UIElement extends InteractiveGraphicalObject {
 
@@ -14,10 +16,7 @@ public abstract class UIElement extends InteractiveGraphicalObject {
     public abstract boolean checkClickOn(double x, double y);
 
     /**
-     * Returns a new UIElement, if needed, that complements the current UIElement.
-     * Note that this method will only be called once at the first click on this Element
+     * returns whether the object waits for input, in form of key pressed or released
      */
-    public UIElement getExpandable(){
-        return null;
-    }
+    public abstract boolean awaitInput();
 }
