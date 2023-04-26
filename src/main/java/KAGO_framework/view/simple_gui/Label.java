@@ -31,8 +31,8 @@ public class Label extends GraphicalObject {
         b=0;
         g=0;
         this.hasBorder = hasBorder;
-        this.x = x;
-        this.y = y;
+        coordinates.setX(x);
+        coordinates.setY(y);
         this.text = text;
         this.textsize = size;
         this.font = "Arial";
@@ -49,8 +49,8 @@ public class Label extends GraphicalObject {
      * @param hasBorder Ob das Label einen Rahmen haben soll
      */
     Label(double x, double y, BufferedImage image, boolean hasBorder){
-        this.x = x;
-        this.y = y;
+        coordinates.setX(x);
+        coordinates.setY(y);
         this.setImage(image);
         this.hasBorder = hasBorder;
     }
@@ -75,14 +75,14 @@ public class Label extends GraphicalObject {
     public void draw(DrawTool drawTool) {
         drawTool.setCurrentColor(r, g, b, 255);
         if(getMyImage() != null){
-            drawTool.drawImage(getMyImage(),x,y);
+            drawTool.drawImage(getMyImage(),coordinates.x(), coordinates.y());
         }else {
             drawTool.formatText(font, style, textsize);
-            drawTool.drawText(x + 5, y + height * 0.8, text);
+            drawTool.drawText(coordinates.x() + 5, coordinates.y() + height * 0.8, text);
         }
         if (hasBorder){
             drawTool.setCurrentColor(0, 0, 0, 255);
-            drawTool.drawRectangle(x, y, width, height);
+            drawTool.drawRectangle(coordinates.x(), coordinates.y(), width, height);
         }
     }
 

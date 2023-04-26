@@ -1,6 +1,7 @@
 package KAGO_framework.view.simple_gui;
 
 import KAGO_framework.model.GraphicalObject;
+import KAGO_framework.model.Vector;
 import KAGO_framework.model.abitur.datenstrukturen.List;
 import KAGO_framework.view.DrawTool;
 
@@ -26,8 +27,8 @@ public class GIFPainter extends GraphicalObject {
         images = new List<>();
         addImage(imagePath);
         images.toFirst();
-        this.x = x;
-        this.y = y;
+        coordinates.setX(x);
+        coordinates.setY(y);
     }
 
     /**
@@ -55,7 +56,7 @@ public class GIFPainter extends GraphicalObject {
 
     @Override
     public void draw(DrawTool drawTool) {
-        if(images.hasAccess()) images.getContent().paintIcon(drawTool.getParent(), drawTool.getGraphics2D(), (int)x, (int)y);
+        if(images.hasAccess()) images.getContent().paintIcon(drawTool.getParent(), drawTool.getGraphics2D(), (int)coordinates.x(), (int)coordinates.y());
     }
 
     @Override

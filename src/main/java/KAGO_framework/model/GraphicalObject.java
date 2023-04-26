@@ -16,7 +16,7 @@ import java.io.IOException;
 public class GraphicalObject implements Drawable {
 
     // Attribute: um Konstruktoraufrufzwang zu vermeiden wurden hier AUSNAHMSWEISE Startwerte gesetzt
-    protected double x = 0, y = 0; // Die Koordinaten des Objekts
+    protected Vector coordinates = new Vector(); // Die Koordinaten des Objekts
     protected double width = 0, height = 0; // Die rechteckige Ausdehnung des Objekts, wobei x/y die obere, linke Ecke angeben
     protected double radius = 0; //Falls ein Radius gesetzt wurde (also größer als 0 ist), wird collidesWith angepasst.
 
@@ -47,8 +47,7 @@ public class GraphicalObject implements Drawable {
      * @param picturePath
      */
     public GraphicalObject(String picturePath, double x, double y){
-        this.x = x;
-        this.y = y;
+        coordinates = new Vector(x, y);
         this.setNewImage(picturePath);
     }
 
@@ -97,7 +96,7 @@ public class GraphicalObject implements Drawable {
      * werden. Es ist möglich über das Grafikobjekt "drawTool" ein Bild zeichnen zu lassen, aber auch geometrische Formen sind machbar.
      */
     public void draw(DrawTool drawTool){
-        if(getMyImage() != null) drawTool.drawImage(getMyImage(),x,y);
+        if(getMyImage() != null) drawTool.drawImage(getMyImage(),coordinates.x(), coordinates.y());
     }
 
     @Override
@@ -117,20 +116,15 @@ public class GraphicalObject implements Drawable {
      */
     public boolean collidesWith(GraphicalObject gO){
         if(radius == 0){
-            if(gO.getRadius() == 0){
-                if ( x < gO.getX()+gO.getWidth() && x + width > gO.getX() && y < gO.getY() + gO.getHeight() && y + height > gO.getY() ) return true;
-            }else{
-                if ( x < gO.getX()+gO.getRadius() && x + width > gO.getX()-gO.getRadius() && y < gO.getY() + gO.getRadius() && y + height > gO.getY()-gO.getRadius() ) return true;
-            }
+            if(gO.getRadius() == 0)
+                return coordinates.x() < gO.getX() + gO.getWidth() && coordinates.x() + width > gO.getX() && coordinates.y() < gO.getY() + gO.getHeight() && coordinates.y() + height > gO.getY();
+            return coordinates.x() < gO.getX() + gO.getRadius() && coordinates.x() + width > gO.getX() - gO.getRadius() && coordinates.y() < gO.getY() + gO.getRadius() && coordinates.y() + height > gO.getY() - gO.getRadius();
         }else{
-            if(gO.getRadius() == 0){
-                if ( gO.getX() < x+radius && gO.getX() + gO.getWidth() > x-radius && gO.getY() < y + radius && gO.getY() + gO.getHeight() > y-radius ) return true;
-            }else{
-                if(getDistanceTo(gO)<=radius+gO.getRadius()) return true;
-            }
-        }
+            if(gO.getRadius() == 0)
+                return gO.getX() < coordinates.x() + radius && gO.getX() + gO.getWidth() > coordinates.x() - radius && gO.getY() < coordinates.y() + radius && gO.getY() + gO.getHeight() > coordinates.y() - radius;
+            return getDistanceTo(gO) <= radius + gO.getRadius();
 
-        return false;
+        }
     }
 
     /**
@@ -142,14 +136,12 @@ public class GraphicalObject implements Drawable {
      */
     public boolean collidesWith(double pX, double pY){
         if(radius == 0){
-            if ( pX < getX() + getWidth() && pX > getX() && pY < getY() + getHeight() && pY > getY() ) return true;
+            return pX < getX() + getWidth() && pX > getX() && pY < getY() + getHeight() && pY > getY();
         }else{
-            double midX = x + radius;
-            double midY = y + radius;
-            if(Math.sqrt( Math.pow(midX-pX, 2) + Math.pow(midY-pY,2)) < radius) return true;
+            double midX = coordinates.x() + radius;
+            double midY = coordinates.y() + radius;
+            return Math.sqrt(Math.pow(midX - pX, 2) + Math.pow(midY - pY, 2)) < radius;
         }
-
-        return false;
     }
 
     /**
@@ -159,8 +151,8 @@ public class GraphicalObject implements Drawable {
      */
     public double getDistanceTo(GraphicalObject gO){
         // Berechne die Mittelpunkte der Objekte
-        double midX = x;
-        double midY = y;
+        double midX = coordinates.x();
+        double midY = coordinates.x();
         if(radius == 0){
             midX = midX + width/2;
             midY = midY + height/2;
@@ -186,18 +178,29 @@ public class GraphicalObject implements Drawable {
     public void moveInDirection(double degrees, double speed, double dt){
         double dx = Math.cos(degrees/180*Math.PI)*speed*dt;
         double dy = Math.sin(degrees/180*Math.PI)*speed*dt;
-        x = x + dx;
-        y = y + dy;
+        coordinates.setX(coordinates.x() + dx);
+        coordinates.setY(coordinates.y() + dy);
+    }
+
+    /**
+     * addiert den übergebenen Vektor auf die Koordinaten des Objektes
+     */
+    public void move(Vector vector){
+        coordinates.add(vector);
     }
 
     // Sondierende Methoden: "getter"
 
     public double getX() {
-        return x;
+        return coordinates.x();
     }
 
     public double getY() {
-        return y;
+        return coordinates.y();
+    }
+
+    public double getZ(){
+        return coordinates.z();
     }
 
     public double getWidth() {
@@ -216,14 +219,22 @@ public class GraphicalObject implements Drawable {
         return myImage;
     }
 
+    public Vector getCoordinates(){
+        return coordinates;
+    }
+
     // Manipulierende Methoden: "setter"
 
     public void setX(double x) {
-        this.x = x;
+        coordinates.setX(x);
     }
 
     public void setY(double y) {
-        this.y = y;
+        coordinates.setY(y);
+    }
+
+    public void setZ(double z){
+        coordinates.setZ(z);
     }
 
     public void setWidth(double width) {

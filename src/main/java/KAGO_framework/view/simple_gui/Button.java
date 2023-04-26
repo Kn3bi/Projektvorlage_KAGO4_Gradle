@@ -72,7 +72,7 @@ public class Button extends Label implements Interactable {
     public void mouseClicked(MouseEvent e) {
         double mouseX = e.getX();
         double mouseY = e.getY();
-        if(mouseX > x && mouseX < x+width && mouseY > y && mouseY < y+height){
+        if(mouseX > coordinates.x() && mouseX < coordinates.x()+width && mouseY > coordinates.y() && mouseY < coordinates.y()+height){
             buttonHandler.processButtonClick(actionCode);
         }
     }
