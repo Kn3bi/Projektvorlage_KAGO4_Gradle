@@ -15,7 +15,6 @@ public class InputManager extends InteractiveGraphicalObject {
     /**
      * Objekterzeugung
      * @param programController Nötig als Objekt vom Controllerbereich, das informiert wird
-     * @param viewController Nötig, um den Aufruf der Interface-Methoden sicherzustellen
      */
     public InputManager(ProgramController programController){
         this.programController = programController;
