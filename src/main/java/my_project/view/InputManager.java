@@ -10,7 +10,7 @@ import java.awt.event.MouseEvent;
  */
 public class InputManager extends InteractiveGraphicalObject {
 
-    private ProgramController programController;
+    private final ProgramController programController;
 
     /**
      * Objekterzeugung
