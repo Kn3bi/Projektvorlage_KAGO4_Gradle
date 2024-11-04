@@ -1,15 +1,15 @@
 package my_project.control;
 
 import KAGO_framework.control.ViewController;
-import KAGO_framework.model.abitur.datenstrukturen.Queue;
-import my_project.model.Ball;
-import my_project.view.InputManager;
-
-import java.awt.event.MouseEvent;
+import my_project.model.House;
 
 /**
- * Ein Objekt der Klasse ProgramController dient dazu das Programm zu steuern. Die updateProgram - Methode wird
- * mit jeder Frame im laufenden Programm aufgerufen.
+ * Ein Objekt der Klasse ProgramController dient dazu das Programm zu steuern.
+ * Hinweise:
+ * - Der Konstruktor sollte nicht geändert werden.
+ * - Sowohl die startProgram()- als auch die updateProgram(...)-Methoden müssen vorhanden sein und ihre Signatur sollte
+ *   nicht geändert werden
+ * - Zusätzliche Methoden sind natürlich gar kein Problem
  */
 public class ProgramController {
 
@@ -18,6 +18,7 @@ public class ProgramController {
 
     // Referenzen
     private ViewController viewController;  // diese Referenz soll auf ein Objekt der Klasse viewController zeigen. Über dieses Objekt wird das Fenster gesteuert.
+    private House firstHouse; // deklariert eine Referenz für ein Objekt der Klasse House
 
     /**
      * Konstruktor
@@ -31,19 +32,19 @@ public class ProgramController {
     }
 
     /**
-     * Diese Methode wird genau ein mal nach Programmstart aufgerufen.
-     * Sie erstellt die leeren Datenstrukturen, zu Beginn nur eine Queue
+     * Diese Methode wird genau ein mal nach Programmstart aufgerufen. Hier sollte also alles geregelt werden,
+     * was zu diesem Zeipunkt passieren muss.
      */
     public void startProgram() {
-        // Erstelle ein Objekt der Klasse Ball und lasse es zeichnen
-        Ball ball1 = new Ball(150,150);
-        viewController.draw(ball1);
-
+        // Erstelle ein Objekt der Klasse House und initialisiere damit die Referenz house1
+        firstHouse = new House();
+        // Teile dem ViewController-Objekt mit, dass das House-Objekt gezeichnet werden soll
+        viewController.draw(firstHouse);
     }
 
     /**
-     * Aufruf mit jeder Frame
-     * @param dt Zeit seit letzter Frame
+     * Diese Methode wird vom ViewController-Objekt automatisch mit jedem Frame aufgerufen (ca. 60mal pro Sekunde)
+     * @param dt Zeit seit letztem Frame in Sekunden
      */
     public void updateProgram(double dt){
 

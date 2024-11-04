@@ -6,7 +6,7 @@ import java.awt.event.MouseEvent;
 
 /**
  * Realisiert ein Objekt, dass alle Eingaben empfängt und dann danach passende Methoden
- * im ProgramController aufruft
+ * im ProgramController aufruft.
  */
 public class InputManager extends InteractiveGraphicalObject {
 
